@@ -17,6 +17,12 @@ module ActiveRecord
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
+        def view_exists? (view_name)
+          return false if view_name.blank?
+          unquoted_view_name = Utils.unqualify_table_name(view_name)
+          views.include?(unquoted_view_name)
+        end
+
         def indexes(table_name, name = nil)
           data = select("EXEC sp_helpindex #{quote(table_name)}",name) rescue []
           data.inject([]) do |indexes,index|
