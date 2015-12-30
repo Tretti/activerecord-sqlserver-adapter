@@ -175,7 +175,9 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
+        result = identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
+        result = schema_cache.view_exists?(table_name) ? "id" : nil unless result
+        result
       end
 
       def schema_creation
