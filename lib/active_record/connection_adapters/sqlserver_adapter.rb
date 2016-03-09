@@ -175,7 +175,9 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
+        result = identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
+        result = schema_cache.view_exists?(table_name) ? "id" : nil unless result
+        result
       end
 
       def schema_creation
@@ -311,6 +313,7 @@ module ActiveRecord
                                 client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
                                 client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
                               end
+
           client.execute('SET TEXTSIZE 2147483647').do
           client.execute('SET CONCAT_NULL_YIELDS_NULL ON').do
         end

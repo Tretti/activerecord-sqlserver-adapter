@@ -16,6 +16,12 @@ module ActiveRecord
           super || tables.include?(unquoted_table_name) || views.include?(unquoted_table_name)
         end
 
+        def view_exists? (view_name)
+          return false if view_name.blank?
+          unquoted_view_name = Utils.unqualify_table_name(view_name)
+          views.include?(unquoted_view_name)
+        end
+
         def indexes(table_name, name = nil)
           data = select("EXEC sp_helpindex #{quote(table_name)}", name) rescue []
           data.reduce([]) do |indexes, index|
@@ -57,7 +63,7 @@ module ActiveRecord
           rename_table_indexes(table_name, new_name)
         end
 
-        def remove_column(table_name, column_name, _type = nil)
+        def remove_column(table_name, column_name, _type = nil, options = {})
           raise ArgumentError.new('You must specify at least one column name.  Example: remove_column(:people, :first_name)') if column_name.is_a? Array
           remove_check_constraints(table_name, column_name)
           remove_default_constraint(table_name, column_name)
@@ -66,6 +72,7 @@ module ActiveRecord
         end
 
         def change_column(table_name, column_name, type, options = {})
+          schema_cache.clear_table_cache!(table_name)
           sql_commands = []
           indexes = []
           column_object = schema_cache.columns(table_name).find { |c| c.name.to_s == column_name.to_s }

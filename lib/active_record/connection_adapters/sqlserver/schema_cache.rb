@@ -10,6 +10,7 @@ module ActiveRecord
           @view_names = nil
           @view_information = {}
           @quoted_names = {}
+          @views = {}
         end
 
         # Superclass Overrides
@@ -55,8 +56,11 @@ module ActiveRecord
           @view_names ||= connection.views
         end
 
-        def view_exists?(table_name)
-          table_exists?(table_name)
+        def view_exists?(view_name)
+          return false if view_name.blank?
+          key = table_name_key(view_name)
+          return @views[key] if @views.key? key
+          @views[key] = connection.view_exists?(view_name)
         end
 
         def view_information(table_name)
